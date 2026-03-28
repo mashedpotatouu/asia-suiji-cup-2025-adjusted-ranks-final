@@ -5,7 +5,8 @@ import numpy as np
 import requests
 from tqdm import tqdm
 from dotenv import load_dotenv
-ROOT_DIR = "" # Set this to your tournaments root directory
+# in os.getcwd()/tournament_raw_data
+ROOT_DIR = os.path.join(os.getcwd(), "tournament_raw_data")
 load_dotenv()
 
 IGNORED_USER_IDS = [
@@ -38,9 +39,13 @@ def extract_id(cell, kind="map"):
         if m2:
             return m2.group(1)
     elif kind == "match":
+        # Try to extract match ID from URLs like https://osu.ppy.sh/community/matches/12345678 or mp/12345678
         m = re.search(r'/matches/(\d+)', s)
         if m:
             return m.group(1)
+        m2 = re.search(r'/mp/(\d+)', s)
+        if m2:
+            return m2.group(1)
     return None
 
 def load_match_links(stage, TOURNEY_DIR):
@@ -114,6 +119,8 @@ def process_tournament(TOURNEY_DIR):
     print(f"\n\n========== Processing {TOURNEY_DIR} ==========")
     for stage in STAGE_NAMES:
         match_ids = load_match_links(stage, TOURNEY_DIR)
+
+        print(f"Stage: {stage}, Matches found: {len(match_ids)}")
         if not match_ids:
             continue
 
